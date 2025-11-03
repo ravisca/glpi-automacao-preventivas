@@ -1,0 +1,26 @@
+[database]
+host = localhost
+user = seu_usuario_glpi
+password = sua_senha_glpi
+database = glpi
+
+[glpi_defaults]
+# IDs "pai" para as categorias. Verifique estes valores no seu GLPI.
+id_cat_itil_preventiva = 131
+id_cat_task_preventiva = 12 
+
+# IDs fixos para os campos do chamado
+location_id = 1554
+ticket_type_id = 2
+requester_user_id = 34
+calendar_id = 1
+
+# Data padrão para o início do chamado recorrente.
+default_begin_date = 2025-12-01 08:00:00
+
+# Listas de campos para os modelos de chamado
+campos_ocultos = -2,6,9,10,11,13,18,30,37,45,155,180,185,190,191,193
+campos_obrigatorios = 1,7,14,21,83
+
+[script_settings]
+descricao_chamado = Manutenção preventiva a ser realizada conforme tarefas vinculadas.

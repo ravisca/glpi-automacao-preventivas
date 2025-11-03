@@ -1,0 +1,3 @@
+# Dependências do Python para o projeto
+mysql-connector-python
+python-dateutil

@@ -1,0 +1,18 @@
+#/etc/systemd/system/preventivas.timer
+
+[Unit]
+Description=Executa o serviço de preventivas do GLPI a cada 20 dias
+
+[Timer]
+# Executa o serviço pela primeira vez 10 minutos após o boot
+OnBootSec=10min
+
+# A mágica acontece aqui: agenda a próxima execução para 20 dias 
+# após a ÚLTIMA VEZ que o serviço terminou de rodar.
+OnUnitInactiveSec=20d
+
+# Garante que a contagem do tempo sobreviva a reinicializações do sistema
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,25 @@
+#/etc/systemd/system/preventivas.service
+
+[Unit]
+Description=Serviço para executar a criação de preventivas do GLPI
+# Garante que a rede esteja disponível antes de rodar, caso o DB seja acessado via rede
+After=network.target
+
+[Service]
+Type=oneshot
+
+# Usuário que irá executar o script. É uma boa prática não usar 'root'.
+# Use o mesmo usuário dono dos arquivos do projeto.
+User=**USUARIO_SERVIDOR**
+
+# Diretório onde o projeto está. Isso garante que o script encontre 
+# os arquivos config.ini e log_preventivas.log
+WorkingDirectory=/opt/preventivas
+
+# Comando exato para executar o script. 
+# Use o caminho completo para o interpretador python3.
+ExecStart=
+
+
+[Install]
+WantedBy=multi-user.target

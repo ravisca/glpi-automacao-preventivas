@@ -1,0 +1,194 @@
+Lógica do banco
+    Tabela com logica das preventivas - preventivas:
+        id - Chave única identificadora
+        categoria_name - Nome da Categorias presentes na tabela glpi_plugin_genericobject_geralcategories coluna name
+        categoria_id - Id da categoria presente na tabela glpi_plugin_genericobject_geralcategories coluna id
+        fornecedor_name - usuário do fornecedor que está na tabela glpi_users coluna name
+        fornecedor_id - id do usuário do fornecedor que está na tabela glpi_users coluna id
+        periodo - Período que deve ser gerado 
+        tarefas - Tarefas para ser efetuada separado por ";"
+        fornecedor_completename - Nome completo do usuário
+
+    Tabela dos bens - glpi_plugin_genericobject_gerals:
+        id - identificador do bem
+        plugin_genericobject_geralcategories_id - ID da categoria presente na tabela 
+        otherserial - número da plaqueta do bem
+        states_id - ID do status do bem
+
+    Tabela das categorias dos bens - glpi_plugin_genericobject_geralcategories:
+        id - Identificador da categoria
+        name - Nome da categoria
+
+    Tabela dos usuários - glpi_users:
+        id - identificador do usuario
+        name - usuário do fornecedor
+
+    Tabela das entidades/Lojas - glpi_entities:
+        id -identificador
+        name - Nome da Loja
+
+    Tabela do chamado recorrente - glpi_ticketrecurrents:
+        id - identificador do chamado recorrente
+        name - Nome titulo do chamado recorrente
+        entities_id - Id da loja presente na tabela glpi_entities 
+        is_active - Status do chamado recorrente
+        tickettemplate_id - modelo do chamado recorrente presente na tabela glpi_tickettemplate
+        begin_date - Data de inicio da preventiva
+        periodicity - periodo que o chamado deve ser aberto - ex:1MONTH
+        calendars_id - Calendário, vai ser sempre a mesma uma variavel,calendar = 1
+        next_creation_date - Data da próxima criação do chamado
+
+    Tabela dos modelos de chamado - glpi_tickettemplates:
+        id - Identificador do modelo
+        name - Titulo do modelo
+        entities_id - Id da loja presente na tabela glpi_entities
+
+    Tabela com campos ocultos do template do chamado - glpi_tickettemplatehiddenfields:
+        id - identificador
+        tickettemplates_id - ID do modelo presente na tabela glpi_tickettemplates
+        num - número identificado do campo que deve ser oculto - Deverá ter uma linha para cada número desse: 
+            {-2,6,9,10,11,13,18,30,37,45,155,180,185,190,191,193} sendo uma variável
+
+    Tabela com campos obrigatórios do template do chamado - glpi_tickettemplatemandatoryfields:
+        id - Identificador
+        tickettemplates_id - ID do modelo presente na tabela glpi_tickettemplates
+        num - número identificado do campo que deve ser obrigatório - Deverá ter uma linha para cada número desse: {1,7,14,21,83} sendo uma variável
+
+    Tabela dos campos pré-definidos - glpi_tickettemplatepredefinedfields:
+        id - Identificador
+        tickettemplates_id - ID do modelo presente na tabela glpi_tickettemplates
+        num - Número identificador do campo que deve ser predefinido
+        value - valor que deve ser preenchido no campo, segue a relação:
+            {1 - Titulo
+            83 - Localização - sempre 1554
+            14 - Tipo - sempre 2
+            7 - Categoria - Cada fornecedor tem um ID de categoria presentes na tabela glpi_itilcategories
+            21 - Descrição - Descrição do chamado
+            5 - id do usuário do fornecedor - 17
+            175	- Tarefas - Id da tarefa presente na tabela glpi_tasktemplates / 1 ID por linha
+            4 - Requerente do chamado - sempre 34
+            13 - Bem atrelado a preventiva - "PluginGenericobjectGeral_"&#glpi_plugin_genericobject_gerals.id
+            }
+
+    Tabela das categorias de chamado - glpi_itilcategories:
+        id - Identificador
+        entities_id - sempre 0
+        is_recursive - sempre 1
+        itilcategories_id - ID da categoria pai - variavel = 131
+        name - Nome da categoria
+        completename - nome da categoria completa formato : #categoria_pai > categoria_Filho#
+        level - Nivel de recursividade em relação a categorias pai - sempre 2
+        is_helpdeskvisible - Status se está visivel para chamados
+        date_mod - Data de Modificação
+        date_creation - Data de criação
+        is_request - sempre 1
+
+    Tabela dos modelos de tarefas - glpi_tasktemplates:
+        id - identificador
+        entities_id - sempre 0
+        is_recursive - sempre 1
+        name - titulo da Tarefa
+        content - Conteúdo de uma única tarefa (script quebra o campo preventivas.tarefas por ";" e cria uma linha para cada)
+        taskcategories_id - Categoria da tarefa presente na tabela glpi_taskcategories / cada fornecedor tem uma categoria
+        date_mod - Data de Modificação
+        date_creation - Data de criação
+        state - Status da tarefa / Sempre 1
+        users_id_tech - id do usuario do fornecedor
+
+    Tabela das categoria da tarefa - glpi_taskcategories:
+        id - Identificador
+        entities_id - sempre 0
+        is_recursive - sempre 1
+        taskcategories_id - ID da categoria pai
+        name - Nome da categoria
+        completename - nome da categoria completa formato : #categoria_pai > categoria_Filho#
+        level - Nivel de recursividade em relação a categorias pai
+        is_active - Status da categoria / 1 ou 0
+        is_helpdeskvisible - Status se está visivel para chamados
+        date_mod - Data de Modificação
+        date_creation - Data de criação
+
+--- --- --- ---
+
+Lógica de execução
+    Detalhes >
+    $ - usado para destacar variável
+    # - usado para destacar citação de campo do banco
+    & - usado para concatenar
+
+    0 - Sincroniza o status de preventivas JÁ EXISTENTES com o status do bem
+        DESATIVA preventivas: Busca por chamados recorrentes (glpi_ticketrecurrents) onde is_active = 1 e o bem correspondente (glpi_plugin_genericobject_gerals) está com states_id != 1. Altera o recorrente para is_active = 0.
+        REATIVA preventivas: Busca por chamados recorrentes onde is_active = 0 e o bem correspondente voltou a ter states_id = 1. Altera o recorrente para is_active = 1.
+
+    1 - Identifica todos os bens ATIVOS na tabela dos bens e sua categoria (glpi_plugin_genericobject_gerals)
+    2 - Cria a categoria do chamado (glpi_itilcategories) com o formato: {
+        entities_id = 0
+        is_recursive = 1
+        itilcategories_id = $id_cat_itil_preventiva
+        name = #glpi_plugin_genericobject_geralcategories.name#
+        completename = $id_cat_itil_preventiva.name&" > "&#glpi_plugin_genericobject_geralcategories.name#
+        level = 2
+        is_helpdeskvisible = 0
+        date_mod = Now()
+        date_creation = Now()
+        is_request = 1
+        }
+    3 - Cria a categoria da tarefa (glpi_taskcategories) com o formato: {
+        entities_id = 0
+        is_recursive = 1
+        taskcategories_id = $id_cat_task_preventiva
+        name = #glpi_plugin_genericobject_geralcategories.name#
+        completename = $id_cat_task_preventiva.name&" > "&#glpi_plugin_genericobject_geralcategories.name#
+        level = 2
+        is_active = 1
+        is_helpdeskvisible = 0
+        date_mod = Now()
+        date_creation = Now()
+        }
+    4 - Cria o modelo de tarefa (glpi_tasktemplates) para cada valor na #preventivas.tarefas separado por ; com o formato: {
+        entities_id = 0
+        is_recursive = 1
+        name = "Tarefa "&#preventivas.fornecedor_completename
+        content = #preventivas.tarefas - O script faz um loop em preventivas.tarefas, quebrando pelo ";", e cria um modelo de tarefa para cada item da lista
+        taskcategories_id = 0
+        date_mod = now()
+        date_creation = now()
+        state = 1
+        users_id_tech = #preventivas.fornecedor_id#
+        }
+    5 - Cria o modelo de chamado (glpi_tickettemplates) para cada linha na #glpi_plugin_genericobject_gerals com o formato: {
+        name = "Preventiva - "&#preventivas.categoria_name&" - "&#glpi_entities.name&" - PL:"&#glpi_plugin_genericobject_gerals.otherserial
+        entities_id = #glpi_entities.id
+        }
+    6 - Cria os campos ocultos do modelo de chamado (glpi_tickettemplatehiddenfields) com o formato: {
+        tickettemplates_id = glpi_tickettemplates.id
+        num = $campos_ocultos = {-2,6,9,10,11,13,18,30,37,45,155,180,185,190,191,193}
+        }
+    7 - Cria os campos obrigatórios do modelo de chamado (glpi_tickettemplatemandatoryfields) com o formato: {
+        tickettemplates_id = glpi_tickettemplates.id
+        num = $campos_obrigatórios = {1,7,14,21,83}
+        }
+    8 - Cria os campos pré-definidos do modelo de chamado (glpi_tickettemplatepredefinedfields) com o formato: {
+        tickettemplates_id = glpi_tickettemplates.id
+        num - value segue a relação: {
+            1 - "Preventiva - "&#preventivas.categoria_name&" - PL:"&#glpi_plugin_genericobject_gerals.otherserial
+            83 = 1554
+            14 = 2
+            7 = glpi_itilcategories.id
+            21 = $descricao_chamado
+            5 = #glpi_users.id
+            175	#glpi_tasktemplates.id / 1 ID por linha
+            4 = 34
+            13 = "PluginGenericobjectGeral_"&#glpi_plugin_genericobject_gerals.id
+        }
+        }
+    9 - Cria o chamado recorrente (glpi_ticketrecurrents) com o formato: {
+        name = "Preventiva - "&#preventivas.categoria_name&" - PL:"&#glpi_plugin_genericobject_gerals.otherserial
+        entities_id = glpi_entities.id
+        is_active = 1
+        tickettemplate_id = glpi_tickettemplate.id
+        begin_date = $data_padrao_inicio_preventiva
+        periodicity = #preventivas.periodo
+        calendars_id = $id_calendario
+        next_creation_date = $data_padrao_inicio_preventiva
+        }
