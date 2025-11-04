@@ -51,6 +51,7 @@ def get_bens_por_categoria(connection, categoria_id):
             b.entities_id,
             b.otherserial,
             b.states_id,
+            b.name as bem_name,
             e.name as entity_name
         FROM glpi_plugin_genericobject_gerals as b
         JOIN glpi_entities as e ON b.entities_id = e.id
@@ -154,12 +155,15 @@ def configure_ticket_template(connection, template_id, itil_category_id, task_id
     
     # Passo 8: Campos Pré-definidos
     title = f"Preventiva - {preventiva['categoria_name']} - PL:{bem['otherserial']}"
+    nome_do_bem = bem['bem_name']
+    base_descricao = config['script_settings']['descricao_chamado']
+    nova_descricao = f"Bem:{nome_do_bem}\n\n{base_descricao}"
     predefined_fields = {
         1: title,  # Título
         83: config['glpi_defaults']['location_id'], # Localização
         14: config['glpi_defaults']['ticket_type_id'], # Tipo
         7: itil_category_id, # Categoria
-        21: config['script_settings']['descricao_chamado'], # Descrição
+        21: nova_descricao, # Descrição
         5: preventiva['fornecedor_id'], # Atribuído para - Técnico
         4: config['glpi_defaults']['requester_user_id'], # Requerente
         13: f"PluginGenericobjectGeral_{bem['id']}" # Bem atrelado
