@@ -15,8 +15,8 @@ ticket_type_id = 2
 requester_user_id = 34
 calendar_id = 1
 
-# Data padrão para o início do chamado recorrente.
-default_begin_date = 2025-12-01 08:00:00
+# Dia do mês para a primeira criação da preventiva (ex: 2 para "dia 02")
+dia_inicio_preventiva = 2
 
 # Listas de campos para os modelos de chamado
 campos_ocultos = -2,6,9,10,11,13,18,30,37,45,155,180,185,190,191,193

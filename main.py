@@ -180,13 +180,24 @@ def create_recurrent_ticket(connection, template_id, preventiva, bem, config):
     recurrent_name = f"Preventiva - {preventiva['categoria_name']} - PL:{bem['otherserial']}"
     logging.info(f"Criando chamado recorrente: '{recurrent_name}'")
     
-    begin_date = config['glpi_defaults']['default_begin_date']
-    if not begin_date:
-        now = datetime.now()
-        begin_date_dt = (now.replace(day=1) + relativedelta(months=1)).strftime('%Y-%m-%d 08:00:00')
-    else:
-        begin_date_dt = begin_date
+    try:
+        dia_alvo = int(config['glpi_defaults']['dia_inicio_preventiva'])
+    except ValueError:
+        logging.warning("Valor de 'dia_inicio_preventiva' inválido no config.ini. Usando dia 1 como padrão.")
+        dia_alvo = 1
+
+    now = datetime.now() 
+    first_day_this_month = now.replace(day=1)
+    first_day_next_month = first_day_this_month + relativedelta(months=1)
     
+    try:
+        target_date = first_day_next_month.replace(day=dia_alvo, hour=8, minute=0, second=0, microsecond=0)
+    except ValueError:
+        logging.warning(f"Dia {dia_alvo} é inválido para o próximo mês. Usando o último dia do mês.")
+        last_day_next_month = first_day_next_month + relativedelta(months=1) - relativedelta(days=1)
+        target_date = last_day_next_month.replace(hour=8, minute=0, second=0, microsecond=0)
+    begin_date_dt = target_date.strftime('%Y-%m-%d %H:%M:%S')
+      
     insert_query = """
         INSERT INTO glpi_ticketrecurrents (name, entities_id, is_active, tickettemplates_id, begin_date, periodicity, calendars_id, next_creation_date)
         VALUES (%s, %s, 1, %s, %s, %s, %s, %s)
