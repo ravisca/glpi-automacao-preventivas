@@ -160,6 +160,7 @@ def configure_ticket_template(connection, template_id, itil_category_id, task_id
     nova_descricao = f"Bem:{nome_do_bem}\n\n{base_descricao}"
     predefined_fields = {
         1: title,  # Título
+        12: config['glpi_defaults']['ticket_status_id'], # Status
         83: config['glpi_defaults']['location_id'], # Localização
         14: config['glpi_defaults']['ticket_type_id'], # Tipo
         7: itil_category_id, # Categoria

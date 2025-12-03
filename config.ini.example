@@ -15,6 +15,9 @@ ticket_type_id = 2
 requester_user_id = 34
 calendar_id = 1
 
+# ID do Status inicial do chamado (1 = NOVO, 2 = PROCESSANDO (ATRIBUIDO), 3 = PROCESSANDO (PLANEJADO), 4 = PENDENTE, 5 = SOLUCIONADO, 6 = FECHADO )
+ticket_status_id = 1
+
 # Dia do mês para a primeira criação da preventiva (ex: 2 para "dia 02")
 dia_inicio_preventiva = 2
 
