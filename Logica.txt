@@ -3,11 +3,8 @@ Lógica do banco
         id - Chave única identificadora
         categoria_name - Nome da Categorias presentes na tabela glpi_plugin_genericobject_geralcategories coluna name
         categoria_id - Id da categoria presente na tabela glpi_plugin_genericobject_geralcategories coluna id
-        fornecedor_name - usuário do fornecedor que está na tabela glpi_users coluna name
-        fornecedor_id - id do usuário do fornecedor que está na tabela glpi_users coluna id
         periodo - Período que deve ser gerado 
         tarefas - Tarefas para ser efetuada separado por ";"
-        fornecedor_completename - Nome completo do usuário
 
     Tabela dos bens - glpi_plugin_genericobject_gerals:
         id - identificador do bem
@@ -154,7 +151,7 @@ Lógica de execução
         date_mod = now()
         date_creation = now()
         state = 1
-        users_id_tech = #preventivas.fornecedor_id#
+        users_id_tech = 0
         }
     5 - Cria o modelo de chamado (glpi_tickettemplates) para cada linha na #glpi_plugin_genericobject_gerals com o formato: {
         name = "Preventiva - "&#preventivas.categoria_name&" - "&#glpi_entities.name&" - PL:"&#glpi_plugin_genericobject_gerals.otherserial
@@ -176,7 +173,6 @@ Lógica de execução
             14 = 2
             7 = glpi_itilcategories.id
             21 = $descricao_chamado
-            5 = #glpi_users.id
             175	#glpi_tasktemplates.id / 1 ID por linha
             4 = 34
             13 = "PluginGenericobjectGeral_"&#glpi_plugin_genericobject_gerals.id

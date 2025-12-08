@@ -54,11 +54,8 @@ Antes de executar o script, o seu ambiente GLPI **deve** ser preparado:
       id INT AUTO_INCREMENT PRIMARY KEY,
       categoria_name VARCHAR(255) NOT NULL,
       categoria_id INT NOT NULL,
-      fornecedor_name VARCHAR(255),
-      fornecedor_id INT,
       periodo VARCHAR(50),
-      tarefas TEXT,
-      fornecedor_completename VARCHAR(255)
+      tarefas TEXT
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ```
     *Popule esta tabela com sua lógica de manutenção.*
