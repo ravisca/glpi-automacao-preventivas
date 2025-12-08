@@ -1,5 +1,5 @@
 Lógica do banco
-    Tabela com logica das preventivas - preventivas:
+    Tabela com logica das preventivas - preventivas: 
         id - Chave única identificadora
         categoria_name - Nome da Categorias presentes na tabela glpi_plugin_genericobject_geralcategories coluna name
         categoria_id - Id da categoria presente na tabela glpi_plugin_genericobject_geralcategories coluna id
