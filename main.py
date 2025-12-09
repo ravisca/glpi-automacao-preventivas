@@ -96,7 +96,8 @@ def create_or_get_task_templates(connection, preventiva, task_category_id):
     tarefas = [t.strip() for t in preventiva['tarefas'].split(';') if t.strip()]
     
     for tarefa_content in tarefas:
-        name = f"Tarefa - {preventiva['categoria_name']}"
+        resumo_tarefa = tarefa_content[:20] + "..." if len(tarefa_content) > 20 else tarefa_content
+        name = f"Tarefa - {preventiva['categoria_name']} ({resumo_tarefa})"
 
         check_query = """
             SELECT id FROM glpi_tasktemplates 
@@ -105,7 +106,7 @@ def create_or_get_task_templates(connection, preventiva, task_category_id):
         existing_template = db.fetch_one(connection, check_query, (name, tarefa_content))
         
         if existing_template:
-            logging.info(f"Modelo de tarefa '{name}' com conteúdo '{tarefa_content[:30]}...' já existe. ID: {existing_template['id']}")
+            logging.info(f"Modelo de tarefa '{name}' com conteúdo '{resumo_tarefa}...' já existe. ID: {existing_template['id']}")
             task_template_ids.append(existing_template['id'])
             continue
 
