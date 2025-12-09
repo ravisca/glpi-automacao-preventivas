@@ -61,6 +61,34 @@ def get_bens_por_categoria(connection, categoria_id):
     """
     return db.fetch_all(connection, query, (categoria_id,))
 
+def create_or_get_category(connection, table_name, parent_id_column, parent_id, category_name, level, extra_fields=None):
+    """Função genérica para criar ou obter categorias (ITIL ou Tarefa)."""
+    # Verifica se a categoria já existe
+    check_query = f"SELECT id FROM {table_name} WHERE name = %s AND {parent_id_column} = %s"
+    existing_category = db.fetch_one(connection, check_query, (category_name, parent_id))
+    if existing_category:
+        logging.info(f"Categoria '{category_name}' já existe na tabela {table_name}. ID: {existing_category['id']}.")
+        return existing_category['id']
+
+    # Se não existir, cria
+    logging.info(f"Criando categoria '{category_name}' na tabela {table_name}...")
+    parent_completename_query = f"SELECT completename FROM {table_name} WHERE id = %s"
+    parent = db.fetch_one(connection, parent_completename_query, (parent_id,))
+    parent_completename = parent['completename'] if parent else ''
+    completename = f"{parent_completename} > {category_name}"
+
+    fields = {
+        'entities_id': 0, 'is_recursive': 1, 'name': category_name,
+        'completename': completename, 'level': level, 'date_mod': datetime.now(),
+        'date_creation': datetime.now(), parent_id_column: parent_id
+    }
+    if extra_fields:
+        fields.update(extra_fields)
+
+    columns = ', '.join(fields.keys())
+    placeholders = ', '.join(['%s'] * len(fields))
+    insert_query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+
 def create_or_get_task_templates(connection, preventiva, task_category_id):
     """(Passo 4) Cria ou obtém os modelos de tarefa a partir da string de tarefas."""
     task_template_ids = []
@@ -87,39 +115,6 @@ def create_or_get_task_templates(connection, preventiva, task_category_id):
             VALUES (0, 1, %s, %s, %s, %s, %s, 1, 0)
         """
         new_id = db.execute_insert(connection, insert_query, (name, tarefa_content, task_category_id, datetime.now(), datetime.now()))
-        if new_id:
-            task_template_ids.append(new_id)
-            
-    return task_template_ids
-
-def create_or_get_task_templates(connection, preventiva, task_category_id):
-    """(Passo 4) Cria ou obtém os modelos de tarefa a partir da string de tarefas."""
-    task_template_ids = []
-    tarefas = [t.strip() for t in preventiva['tarefas'].split(';') if t.strip()]
-    
-    for tarefa_content in tarefas:
-        resumo_tarefa = tarefa_content[:20] + "..." if len(tarefa_content) > 20 else tarefa_content
-        name = f"Tarefa - {preventiva['categoria_name']} ({resumo_tarefa})"
-        
-        # Verifica se já existe um modelo de tarefa idêntico
-        check_query = """
-            SELECT id FROM glpi_tasktemplates 
-            WHERE name = %s AND content = %s AND users_id_tech = %s
-        """
-        existing_template = db.fetch_one(connection, check_query, (name, tarefa_content, preventiva['fornecedor_id']))
-        
-        if existing_template:
-            logging.info(f"Modelo de tarefa '{name}' com conteúdo '{tarefa_content[:30]}...' já existe. ID: {existing_template['id']}")
-            task_template_ids.append(existing_template['id'])
-            continue
-
-        # Se não existir, cria
-        logging.info(f"Criando modelo de tarefa: '{name}'")
-        insert_query = """
-            INSERT INTO glpi_tasktemplates (entities_id, is_recursive, name, content, taskcategories_id, date_mod, date_creation, state, users_id_tech)
-            VALUES (0, 1, %s, %s, %s, %s, %s, 1, %s)
-        """
-        new_id = db.execute_insert(connection, insert_query, (name, tarefa_content, task_category_id, datetime.now(), datetime.now(), preventiva['fornecedor_id']))
         if new_id:
             task_template_ids.append(new_id)
             
@@ -198,6 +193,7 @@ def create_recurrent_ticket(connection, template_id, preventiva, bem, config):
         logging.warning(f"Dia {dia_alvo} é inválido para o próximo mês. Usando o último dia do mês.")
         last_day_next_month = first_day_next_month + relativedelta(months=1) - relativedelta(days=1)
         target_date = last_day_next_month.replace(hour=8, minute=0, second=0, microsecond=0)
+    
     begin_date_dt = target_date.strftime('%Y-%m-%d %H:%M:%S')
       
     insert_query = """
