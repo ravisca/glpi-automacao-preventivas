@@ -1,17 +1,26 @@
 #Script implantado por Ruan Bastos - 01/11/2025
 import configparser
 import logging
+import os
+from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta # type: ignore
 import db_handler as db
 
 # --- Configuração do Logging ---
-logging.basicConfig(
-    filename='log_preventivas.log',
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+log_dir = '/opt/preventivas/logs'
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+log_file = os.path.join(log_dir, 'preventivas.log')
+handler = TimedRotatingFileHandler(log_file, when='midnight', interval=1, backupCount=30)
+handler.suffix = "%Y-%m-%d"
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+handler.setFormatter(formatter)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
+if not logger.handlers:
+    logger.addHandler(handler)
 
 # --- Funções de Lógica de Negócio (Passos) ---
 
