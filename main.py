@@ -88,6 +88,7 @@ def create_or_get_category(connection, table_name, parent_id_column, parent_id, 
     columns = ', '.join(fields.keys())
     placeholders = ', '.join(['%s'] * len(fields))
     insert_query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+    return db.execute_insert(connection, insert_query, tuple(fields.values()))
 
 def create_or_get_task_templates(connection, preventiva, task_category_id):
     """(Passo 4) Cria ou obtém os modelos de tarefa a partir da string de tarefas."""
